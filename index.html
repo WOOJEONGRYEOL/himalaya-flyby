@@ -430,12 +430,26 @@ refreshMarkerLabels();
 // 봉우리가 위치한 주요 국가들의 대략적 중심에 라벨을 둔다. 줌이 작을 때
 // (투어 시작·봉 사이 줌아웃)만 나타나고, 봉우리에 다가가면 사라진다.
 const COUNTRIES = [
+  // 봉우리가 위치한 핵심 국가
   { name:"네팔",      coord:[84.0, 28.3] },
-  { name:"파키스탄",   coord:[73.2, 35.6] },
-  { name:"인도",      coord:[80.0, 26.8] },
-  { name:"중국 · 티베트", coord:[87.5, 31.3] },
+  { name:"파키스탄",   coord:[71.5, 30.2] },
+  { name:"인도",      coord:[79.5, 25.0] },
+  { name:"중국 · 티베트", coord:[88.0, 32.0] },
   { name:"부탄",      coord:[90.4, 27.5] },
   { name:"방글라데시",  coord:[90.3, 24.0] },
+  // 줌아웃 시 보이는 중앙아시아
+  { name:"아프가니스탄", coord:[66.0, 33.8] },
+  { name:"타지키스탄",  coord:[71.3, 38.6] },
+  { name:"우즈베키스탄", coord:[63.5, 41.5] },
+  { name:"투르크메니스탄", coord:[59.0, 39.2] },
+  { name:"키르기스스탄", coord:[74.8, 41.4] },
+  { name:"카자흐스탄",  coord:[68.0, 48.0] },
+  // 주요 중동 국가
+  { name:"이란",      coord:[54.0, 32.5] },
+  { name:"이라크",     coord:[43.7, 33.2] },
+  { name:"사우디아라비아", coord:[45.0, 24.0] },
+  { name:"아랍에미리트", coord:[54.3, 23.8] },
+  { name:"오만",      coord:[56.5, 21.5] },
 ];
 const countryMarkers = COUNTRIES.map(c => {
   const el = document.createElement("div");
@@ -527,7 +541,7 @@ function whenTilesReady(cb, maxWait){
   let done = false;
   const onIdle = () => { if (!done) { done = true; cb(); } };
   map.once("idle", onIdle);
-  later(() => { if (!done) { done = true; map.off("idle", onIdle); cb(); } }, maxWait || 10000);
+  later(() => { if (!done) { done = true; map.off("idle", onIdle); cb(); } }, maxWait || 12000);
 }
 
 // 두 좌표 사이 대원거리(km)
@@ -554,7 +568,7 @@ function approach(p, fromFar){
     zoom: 11.6,
     pitch: 67,
     bearing,
-    speed: 0.14 - 0.075 * t,                   // 가까우면 0.14, 멀면 0.065 (먼 줌아웃을 천천히)
+    speed: 0.125 - 0.075 * t,                  // 가까우면 0.125, 멀면 0.05 (먼 줌아웃을 더 천천히)
     curve: 1.25 + 0.45 * t,                    // 가까우면 1.25, 멀면 1.70 (높이 아치)
     essential: true
   });
@@ -565,7 +579,7 @@ function approach(p, fromFar){
       // 타일 페이드인이 끝날 잠깐의 여유를 더 준 뒤 선회
       later(() => {
         if (running && !paused && phase === "approach" && idx === myIdx) orbit(p);
-      }, 500);
+      }, 700);
     });
   });
 }
