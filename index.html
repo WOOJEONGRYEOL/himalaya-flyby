@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>히말라야 14좌 플라이바이 — 8000m의 세계</title>
 <link href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css" rel="stylesheet">
 <script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
@@ -183,12 +183,14 @@
   }
 
   /* ── 모바일 가로: 사진을 텍스트 옆에 둔 가로 배치 ── */
+  /* (safe-area-inset → 아이폰 노치/다이내믹아일랜드·홈인디케이터 회피) */
   @media (orientation:landscape) and (max-height:600px) {
     /* 사진(왼쪽) + 정보(오른쪽)를 나란히 → 카드 높이를 절반으로 */
-    #card { left:12px; right:auto; bottom:12px; min-width:0; max-width:60vw;
+    #card { left:max(12px, env(safe-area-inset-left)); right:auto;
+      bottom:max(12px, env(safe-area-inset-bottom)); min-width:0; max-width:min(58vw,400px);
       padding:12px; border-radius:14px; display:flex; gap:13px; align-items:stretch; }
     #cardImgLink { flex:0 0 auto; display:flex; }
-    #cardImg { width:118px; height:100%; max-height:none; min-height:118px;
+    #cardImg { width:112px; height:100%; max-height:none; min-height:112px;
       object-fit:cover; border-radius:9px; margin-bottom:0; align-self:stretch; }
     #cardBody { min-width:0; }
     #cardRank { font-size:10px; margin-bottom:5px; padding:3px 9px; }
@@ -199,11 +201,13 @@
     #cardRegion { font-size:11px; margin-top:5px; }
     #cardActions { margin-top:9px; gap:6px; }
     #cardActions button, #cardActions a { padding:5px 10px; font-size:11px; }
-    #progress { bottom:12px; padding:6px 11px; gap:5px; }
+    #progress { bottom:max(12px, env(safe-area-inset-bottom)); padding:6px 11px; gap:5px; }
     .dot { width:7px; height:7px; }
-    #controls { right:14px; bottom:14px; gap:8px; }
+    #controls { right:max(14px, env(safe-area-inset-right));
+      bottom:max(14px, env(safe-area-inset-bottom)); gap:8px; }
     #controls button { width:40px; height:40px; font-size:15px; }
-    #panoBar { top:12px; padding:7px 9px 7px 16px; gap:10px; }
+    #fsBtn { top:max(12px, env(safe-area-inset-top)); right:max(12px, env(safe-area-inset-right)); }
+    #panoBar { top:max(12px, env(safe-area-inset-top)); padding:7px 9px 7px 16px; gap:10px; }
     #panoTitle { font-size:13px; }
     #panoHint { display:none; }
     #panoExit { padding:6px 13px; font-size:12px; }
@@ -212,6 +216,22 @@
     #intro { gap:12px; }
     #startBtn { padding:11px 38px; font-size:16px; margin-top:4px; }
     #ending h2 { font-size:clamp(22px,5vw,34px); }
+  }
+
+  /* ── 아이폰 가로(매우 낮은 높이 ≤430px): 더 컴팩트하게 ── */
+  @media (orientation:landscape) and (max-height:430px) {
+    #card { max-width:min(54vw,340px); padding:10px; gap:11px; }
+    #cardImg { width:92px; min-height:92px; }
+    #cardKo { font-size:17px; }
+    #cardEn { font-size:10.5px; margin:1px 0 5px; }
+    #cardElev { font-size:21px; }
+    #cardElev small { font-size:12px; }
+    #cardRank { font-size:9px; margin-bottom:4px; padding:2px 8px; }
+    #cardRegion { font-size:10px; margin-top:4px; }
+    #cardActions { margin-top:7px; gap:5px; }
+    #cardActions button, #cardActions a { padding:4px 8px; font-size:10px; }
+    #controls button { width:36px; height:36px; font-size:14px; }
+    #fsBtn { width:34px; height:34px; font-size:14px; }
   }
 </style>
 </head>
@@ -463,7 +483,7 @@ function whenTilesReady(cb, maxWait){
   let done = false;
   const onIdle = () => { if (!done) { done = true; cb(); } };
   map.once("idle", onIdle);
-  later(() => { if (!done) { done = true; map.off("idle", onIdle); cb(); } }, maxWait || 6000);
+  later(() => { if (!done) { done = true; map.off("idle", onIdle); cb(); } }, maxWait || 10000);
 }
 
 // 접근: 봉우리 옆을 비스듬히 바라보며 천천히 날아간다
@@ -477,14 +497,18 @@ function approach(p, fromFar){
     zoom: 11.6,
     pitch: 67,
     bearing,
-    speed: fromFar ? 0.28 : 0.2,               // 천천히, 여유 있게
-    curve: 1.3,                                 // 줌아웃 폭도 줄여서 해상도 변화 최소화
+    speed: fromFar ? 0.17 : 0.12,              // 더 천천히 — 지형 타일이 따라올 시간 확보
+    curve: 1.25,                                // 줌아웃 폭을 줄여 거쳐가는 타일 수 최소화
     essential: true
   });
+  // 도착 후 타일이 다 로드될 때까지 기다렸다가 선회 시작 (블랙/깨짐 방지)
   map.once("moveend", () => {
     whenTilesReady(() => {
       refineMarkers();                         // 고해상도 지형 기준으로 핀 위치 재보정
-      if (running && !paused && phase === "approach" && idx === myIdx) orbit(p);
+      // 타일 페이드인이 끝날 잠깐의 여유를 더 준 뒤 선회
+      later(() => {
+        if (running && !paused && phase === "approach" && idx === myIdx) orbit(p);
+      }, 500);
     });
   });
 }
@@ -575,7 +599,7 @@ function exitPano(resume){
     map.flyTo({
       center: p.coord, zoom: 11.6, pitch: 67,
       bearing: retBearing,
-      speed: 1.4, curve: 1.3, essential: true
+      speed: 0.9, curve: 1.2, essential: true
     });
     map.once("moveend", () => {
       whenTilesReady(() => {
