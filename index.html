@@ -156,6 +156,13 @@
   .pk.active .pk-label span { color:#5a3c08; }
   .pk.active .pk-dot { transform:scale(1.35); }
 
+  /* ── 국가 라벨 (줌아웃 시에만 표시) ──────────── */
+  .ctry { pointer-events:none; text-align:center;
+    font-size:15px; font-weight:700; letter-spacing:.22em; color:rgba(232,242,255,.92);
+    text-shadow:0 1px 12px rgba(0,0,0,.9), 0 0 4px rgba(0,0,0,.7);
+    opacity:0; transition:opacity .8s; white-space:nowrap; }
+  .ctry.show { opacity:1; }
+
   /* ── 모바일 세로: 가로로 돌리라는 안내 ──────── */
   #rotateHint { display:none; }
   @media (orientation:portrait) and (max-width:820px) and (pointer:coarse) {
@@ -418,6 +425,32 @@ function refreshMarkerLabels(){
 }
 map.on("zoom", refreshMarkerLabels);
 refreshMarkerLabels();
+
+// ── 국가 라벨 (줌아웃 시에만 표시) ───────────────────────────
+// 봉우리가 위치한 주요 국가들의 대략적 중심에 라벨을 둔다. 줌이 작을 때
+// (투어 시작·봉 사이 줌아웃)만 나타나고, 봉우리에 다가가면 사라진다.
+const COUNTRIES = [
+  { name:"네팔",      coord:[84.0, 28.3] },
+  { name:"파키스탄",   coord:[73.2, 35.6] },
+  { name:"인도",      coord:[80.0, 26.8] },
+  { name:"중국 · 티베트", coord:[87.5, 31.3] },
+  { name:"부탄",      coord:[90.4, 27.5] },
+  { name:"방글라데시",  coord:[90.3, 24.0] },
+];
+const countryMarkers = COUNTRIES.map(c => {
+  const el = document.createElement("div");
+  el.className = "ctry";
+  el.textContent = c.name;
+  return new maplibregl.Marker({ element: el, anchor: "center" })
+    .setLngLat(c.coord).addTo(map);
+});
+function refreshCountryLabels(){
+  const z = map.getZoom();
+  const show = z < 7.2;                         // 줌아웃 상태에서만
+  countryMarkers.forEach(m => m.getElement().classList.toggle("show", show));
+}
+map.on("zoom", refreshCountryLabels);
+refreshCountryLabels();
 
 function later(fn, ms){ const t = setTimeout(fn, ms); timers.push(t); return t; }
 function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
