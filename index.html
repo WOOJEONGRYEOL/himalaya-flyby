@@ -530,19 +530,32 @@ function whenTilesReady(cb, maxWait){
   later(() => { if (!done) { done = true; map.off("idle", onIdle); cb(); } }, maxWait || 10000);
 }
 
+// 두 좌표 사이 대원거리(km)
+function distKm(a, b){
+  const R = 6371, toR = Math.PI / 180;
+  const dLat = (b[1] - a[1]) * toR, dLng = (b[0] - a[0]) * toR;
+  const h = Math.sin(dLat/2)**2 +
+            Math.cos(a[1]*toR) * Math.cos(b[1]*toR) * Math.sin(dLng/2)**2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
 // 접근: 봉우리 옆을 비스듬히 바라보며 천천히 날아간다
 function approach(p, fromFar){
   phase = "approach";
   const myIdx = idx;
   const bearing = (idx * 67) % 360 - 180;      // 봉우리마다 다른 방향에서 접근
   markers.forEach((m, i) => m.getElement().classList.toggle("active", i === idx));
+  // 이동 거리에 따라 속도·아치를 조절: 멀수록 더 느리게(타일이 따라올 시간 확보)
+  // + 아치를 조금 높여 줌아웃 정점에서 저해상도 타일을 쓰게 해 검은 번쩍임 감소
+  const from = map.getCenter();
+  const t = Math.min(1, distKm([from.lng, from.lat], p.coord) / 550);  // 0(가까움)~1(550km+)
   map.flyTo({
     center: p.coord,
     zoom: 11.6,
     pitch: 67,
     bearing,
-    speed: fromFar ? 0.17 : 0.12,              // 더 천천히 — 지형 타일이 따라올 시간 확보
-    curve: 1.25,                                // 줌아웃 폭을 줄여 거쳐가는 타일 수 최소화
+    speed: 0.14 - 0.075 * t,                   // 가까우면 0.14, 멀면 0.065 (먼 줌아웃을 천천히)
+    curve: 1.25 + 0.45 * t,                    // 가까우면 1.25, 멀면 1.70 (높이 아치)
     essential: true
   });
   // 도착 후 타일이 다 로드될 때까지 기다렸다가 선회 시작 (블랙/깨짐 방지)
