@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0b1d3a"/>
+      <stop offset="0.55" stop-color="#1d4e89"/>
+      <stop offset="1" stop-color="#7fb4e0"/>
+    </linearGradient>
+    <linearGradient id="m1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#dce9f5"/>
+      <stop offset="1" stop-color="#8aa6c4"/>
+    </linearGradient>
+    <linearGradient id="m2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef5fc"/>
+      <stop offset="1" stop-color="#5f7d9e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="224" fill="url(#sky)"/>
+  <!-- 뒤쪽 능선 -->
+  <path d="M64 800 L300 420 L420 560 L560 330 L700 540 L830 400 L960 800 Z" fill="url(#m2)" opacity="0.75"/>
+  <!-- 주봉 (에베레스트) -->
+  <path d="M120 840 L512 230 L904 840 Z" fill="url(#m1)"/>
+  <!-- 주봉 음영 -->
+  <path d="M512 230 L904 840 L512 840 Z" fill="#9db8d6" opacity="0.45"/>
+  <!-- 정상 핀 -->
+  <circle cx="512" cy="196" r="46" fill="#ffd97a" stroke="#0b1d3a" stroke-width="14"/>
+  <rect x="504" y="238" width="16" height="60" rx="8" fill="#ffd97a"/>
+</svg>
