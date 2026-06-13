@@ -38,6 +38,14 @@
     background:transparent; transition:all .2s; }
   #langToggle button.on { background:linear-gradient(135deg,#cfe9ff,#7fc4ff); color:#04121f; }
   #langToggle button:not(.on):hover { color:#fff; }
+  /* 무한 반복 토글 */
+  #loopToggle { padding:8px 18px; border-radius:999px; cursor:pointer;
+    font-size:13px; font-weight:700; font-family:inherit;
+    color:rgba(255,255,255,.7); background:rgba(255,255,255,.08);
+    border:1px solid rgba(150,195,255,.25); transition:all .2s; }
+  #loopToggle:hover { color:#fff; }
+  #loopToggle.on { background:linear-gradient(135deg,#ffd97a,#ffb347); color:#13212e;
+    border-color:rgba(255,230,160,.8); box-shadow:0 0 16px rgba(255,200,80,.5); }
 
   /* ── 봉우리 정보 카드 ──────────────────────── */
   #card {
@@ -272,6 +280,7 @@
     <button id="langKo">한국어</button>
     <button id="langEn">English</button>
   </div>
+  <button id="loopToggle">🔁 <span id="loopLabel">무한 반복</span></button>
   <button id="startBtn">비행 시작</button>
   <div id="loadingNote">지형 데이터 로딩 중…</div>
 </div>
@@ -333,6 +342,7 @@ const PEAKS = [
 
 // 언어 상태 + UI 문자열 사전 (비행 시작 전 인트로에서 선택)
 let lang = "ko";
+let loopMode = false;   // 무한 반복: 1위까지 돈 뒤 처음으로
 const T = {
   ko: {
     title:"히말라야 14좌 플라이바이",
@@ -344,7 +354,7 @@ const T = {
     rankTop:"👑 세계 1위", rank:n=>`세계 ${n}위`,
     endTitle:"14좌 비행 완료", endText:"에베레스트 8,849m — 지구의 정점에서 비행을 마칩니다", replay:"다시 비행하기",
     pauseTitle:"일시정지/재생", skipTitle:"다음 봉우리", fsTitle:"전체화면 보기", fsExit:"전체화면 종료",
-    unit:" m"
+    loop:"무한 반복", unit:" m"
   },
   en: {
     title:"Himalaya 14 Eight-Thousanders",
@@ -356,7 +366,7 @@ const T = {
     rankTop:"👑 World's Highest", rank:n=>`World No.${n}`,
     endTitle:"Flight complete — all 14", endText:"Everest 8,849m — the journey ends at the roof of the world", replay:"Fly again",
     pauseTitle:"Pause/Play", skipTitle:"Next peak", fsTitle:"Fullscreen", fsExit:"Exit fullscreen",
-    unit:" m"
+    loop:"Loop", unit:" m"
   }
 };
 const peakName = p => lang === "ko" ? p.ko : p.en;
@@ -768,7 +778,14 @@ function exitPano(resume){
 function next(){
   if (!running) return;
   idx++;
-  if (idx >= PEAKS.length) return finale();
+  if (idx >= PEAKS.length){
+    if (loopMode){                              // 무한 반복: 처음(시샤팡마)으로
+      idx = -1;
+      dots.forEach(d => d.classList.remove("done"));
+      return next();
+    }
+    return finale();
+  }
   updateDots();
   approach(PEAKS[idx], idx === 0);
 }
@@ -873,6 +890,8 @@ function applyLang(){
   // 언어 토글 버튼 활성 상태
   $("langKo").classList.toggle("on", lang === "ko");
   $("langEn").classList.toggle("on", lang === "en");
+  $("loopLabel").textContent = t.loop;
+  $("loopToggle").classList.toggle("on", loopMode);
   // 지도 위 동적 텍스트 갱신
   refreshMarkerNames();
   refreshCountryNames();
@@ -882,6 +901,10 @@ function applyLang(){
 function setLang(l){ if (l === lang) return; lang = l; applyLang(); }
 $("langKo").addEventListener("click", () => setLang("ko"));
 $("langEn").addEventListener("click", () => setLang("en"));
+$("loopToggle").addEventListener("click", () => {
+  loopMode = !loopMode;
+  $("loopToggle").classList.toggle("on", loopMode);
+});
 applyLang();
 </script>
 </body>
