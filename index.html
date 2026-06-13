@@ -30,6 +30,14 @@
   }
   #startBtn:hover { transform:scale(1.05); box-shadow:0 6px 40px rgba(120,190,255,.7); }
   #loadingNote { font-size:13px; opacity:.5; }
+  /* 언어 토글 */
+  #langToggle { display:inline-flex; gap:4px; padding:4px; border-radius:999px;
+    background:rgba(255,255,255,.08); border:1px solid rgba(150,195,255,.25); }
+  #langToggle button { padding:7px 18px; border-radius:999px; border:none; cursor:pointer;
+    font-size:14px; font-weight:700; font-family:inherit; color:rgba(255,255,255,.7);
+    background:transparent; transition:all .2s; }
+  #langToggle button.on { background:linear-gradient(135deg,#cfe9ff,#7fc4ff); color:#04121f; }
+  #langToggle button:not(.on):hover { color:#fff; }
 
   /* ── 봉우리 정보 카드 ──────────────────────── */
   #card {
@@ -254,12 +262,16 @@
 
 <div id="rotateHint">
   <div class="rh-phone">📱</div>
-  <p>가로로 돌리면<br>봉우리를 더 웅장하게 감상할 수 있어요</p>
+  <p id="rotateText">가로로 돌리면<br>봉우리를 더 웅장하게 감상할 수 있어요</p>
 </div>
 
 <div id="intro">
-  <h1>히말라야 14좌 플라이바이</h1>
-  <p>지구에서 가장 높은 14개의 봉우리를<br>낮은 곳에서 가장 높은 곳까지, 하늘에서 만나봅니다</p>
+  <h1 id="introTitle">히말라야 14좌 플라이바이</h1>
+  <p id="introSub">지구에서 가장 높은 14개의 봉우리를<br>낮은 곳에서 가장 높은 곳까지, 하늘에서 만나봅니다</p>
+  <div id="langToggle">
+    <button id="langKo">한국어</button>
+    <button id="langEn">English</button>
+  </div>
   <button id="startBtn">비행 시작</button>
   <div id="loadingNote">지형 데이터 로딩 중…</div>
 </div>
@@ -295,29 +307,61 @@
 </div>
 
 <div id="ending">
-  <h2>14좌 비행 완료</h2>
-  <p>에베레스트 8,849m — 지구의 정점에서 비행을 마칩니다</p>
+  <h2 id="endTitle">14좌 비행 완료</h2>
+  <p id="endText">에베레스트 8,849m — 지구의 정점에서 비행을 마칩니다</p>
   <button id="replayBtn">다시 비행하기</button>
 </div>
 
 <script>
 // ── 14좌 데이터: 낮은 봉우리 → 높은 봉우리 ──────────────────────────
 const PEAKS = [
-  { rank:14, ko:"시샤팡마",   en:"Shishapangma",  elev:8027, coord:[85.7792,28.3525], region:"티베트 (중국)",            wiki:"Shishapangma" },
-  { rank:13, ko:"가셔브룸 II", en:"Gasherbrum II", elev:8035, coord:[76.6533,35.7583], region:"카라코람 · 파키스탄/중국", wiki:"Gasherbrum II" },
-  { rank:12, ko:"브로드피크",  en:"Broad Peak",    elev:8051, coord:[76.5683,35.8108], region:"카라코람 · 파키스탄/중국", wiki:"Broad Peak" },
-  { rank:11, ko:"가셔브룸 I",  en:"Gasherbrum I",  elev:8080, coord:[76.6964,35.7244], region:"카라코람 · 파키스탄/중국", wiki:"Gasherbrum I" },
-  { rank:10, ko:"안나푸르나",  en:"Annapurna I",   elev:8091, coord:[83.8203,28.5961], region:"네팔",                    wiki:"Annapurna" },
-  { rank:9,  ko:"낭가파르바트", en:"Nanga Parbat",  elev:8126, coord:[74.5892,35.2372], region:"파키스탄",                wiki:"Nanga Parbat" },
-  { rank:8,  ko:"마나슬루",   en:"Manaslu",       elev:8163, coord:[84.5597,28.5497], region:"네팔",                    wiki:"Manaslu" },
-  { rank:7,  ko:"다울라기리",  en:"Dhaulagiri I",  elev:8167, coord:[83.4875,28.6967], region:"네팔",                    wiki:"Dhaulagiri" },
-  { rank:6,  ko:"초오유",     en:"Cho Oyu",       elev:8188, coord:[86.6608,28.0942], region:"네팔/티베트",             wiki:"Cho Oyu" },
-  { rank:5,  ko:"마칼루",     en:"Makalu",        elev:8485, coord:[87.0886,27.8897], region:"네팔/티베트",             wiki:"Makalu" },
-  { rank:4,  ko:"로체",       en:"Lhotse",        elev:8516, coord:[86.9333,27.9617], region:"네팔/티베트",             wiki:"Lhotse" },
-  { rank:3,  ko:"칸첸중가",   en:"Kangchenjunga", elev:8586, coord:[88.1475,27.7025], region:"네팔/인도",               wiki:"Kangchenjunga" },
-  { rank:2,  ko:"K2",        en:"K2 (Chogori)",  elev:8611, coord:[76.5133,35.8825], region:"카라코람 · 파키스탄/중국", wiki:"K2" },
-  { rank:1,  ko:"에베레스트",  en:"Mount Everest", elev:8849, coord:[86.9250,27.9881], region:"네팔/티베트",             wiki:"Mount Everest" },
+  { rank:14, ko:"시샤팡마",   en:"Shishapangma",  elev:8027, coord:[85.7792,28.3525], region:"티베트 (중국)",            regionEn:"Tibet (China)",            wiki:"Shishapangma" },
+  { rank:13, ko:"가셔브룸 II", en:"Gasherbrum II", elev:8035, coord:[76.6533,35.7583], region:"카라코람 · 파키스탄/중국", regionEn:"Karakoram · Pakistan/China", wiki:"Gasherbrum II" },
+  { rank:12, ko:"브로드피크",  en:"Broad Peak",    elev:8051, coord:[76.5683,35.8108], region:"카라코람 · 파키스탄/중국", regionEn:"Karakoram · Pakistan/China", wiki:"Broad Peak" },
+  { rank:11, ko:"가셔브룸 I",  en:"Gasherbrum I",  elev:8080, coord:[76.6964,35.7244], region:"카라코람 · 파키스탄/중국", regionEn:"Karakoram · Pakistan/China", wiki:"Gasherbrum I" },
+  { rank:10, ko:"안나푸르나",  en:"Annapurna I",   elev:8091, coord:[83.8203,28.5961], region:"네팔",                    regionEn:"Nepal",                    wiki:"Annapurna" },
+  { rank:9,  ko:"낭가파르바트", en:"Nanga Parbat",  elev:8126, coord:[74.5892,35.2372], region:"파키스탄",                regionEn:"Pakistan",                 wiki:"Nanga Parbat" },
+  { rank:8,  ko:"마나슬루",   en:"Manaslu",       elev:8163, coord:[84.5597,28.5497], region:"네팔",                    regionEn:"Nepal",                    wiki:"Manaslu" },
+  { rank:7,  ko:"다울라기리",  en:"Dhaulagiri I",  elev:8167, coord:[83.4875,28.6967], region:"네팔",                    regionEn:"Nepal",                    wiki:"Dhaulagiri" },
+  { rank:6,  ko:"초오유",     en:"Cho Oyu",       elev:8188, coord:[86.6608,28.0942], region:"네팔/티베트",             regionEn:"Nepal/Tibet",              wiki:"Cho Oyu" },
+  { rank:5,  ko:"마칼루",     en:"Makalu",        elev:8485, coord:[87.0886,27.8897], region:"네팔/티베트",             regionEn:"Nepal/Tibet",              wiki:"Makalu" },
+  { rank:4,  ko:"로체",       en:"Lhotse",        elev:8516, coord:[86.9333,27.9617], region:"네팔/티베트",             regionEn:"Nepal/Tibet",              wiki:"Lhotse" },
+  { rank:3,  ko:"칸첸중가",   en:"Kangchenjunga", elev:8586, coord:[88.1475,27.7025], region:"네팔/인도",               regionEn:"Nepal/India",              wiki:"Kangchenjunga" },
+  { rank:2,  ko:"K2",        en:"K2 (Chogori)",  elev:8611, coord:[76.5133,35.8825], region:"카라코람 · 파키스탄/중국", regionEn:"Karakoram · Pakistan/China", wiki:"K2" },
+  { rank:1,  ko:"에베레스트",  en:"Mount Everest", elev:8849, coord:[86.9250,27.9881], region:"네팔/티베트",             regionEn:"Nepal/Tibet",              wiki:"Mount Everest" },
 ];
+
+// 언어 상태 + UI 문자열 사전 (비행 시작 전 인트로에서 선택)
+let lang = "ko";
+const T = {
+  ko: {
+    title:"히말라야 14좌 플라이바이",
+    subtitle:"지구에서 가장 높은 14개의 봉우리를<br>낮은 곳에서 가장 높은 곳까지, 하늘에서 만나봅니다",
+    start:"비행 시작", loading:"지형 데이터 로딩 중…", ready:"준비 완료 · 약 3분간의 비행",
+    rotate:"가로로 돌리면<br>봉우리를 더 웅장하게 감상할 수 있어요",
+    pano:"⛰ 정상 360°", photo:"📷 사진", video:"▶ 영상", wiki:"🌐 위키",
+    panoHint:"드래그해서 둘러보세요", panoExit:"투어로 돌아가기 ↩", panoSuffix:" 정상 360°",
+    rankTop:"👑 세계 1위", rank:n=>`세계 ${n}위`,
+    endTitle:"14좌 비행 완료", endText:"에베레스트 8,849m — 지구의 정점에서 비행을 마칩니다", replay:"다시 비행하기",
+    pauseTitle:"일시정지/재생", skipTitle:"다음 봉우리", fsTitle:"전체화면 보기", fsExit:"전체화면 종료",
+    unit:" m"
+  },
+  en: {
+    title:"Himalaya 14 Eight-Thousanders",
+    subtitle:"The 14 highest peaks on Earth<br>from the lowest to the highest, seen from the sky",
+    start:"Start flight", loading:"Loading terrain…", ready:"Ready · about a 3-minute flight",
+    rotate:"Rotate to landscape<br>for a grander view of the peaks",
+    pano:"⛰ Summit 360°", photo:"📷 Photos", video:"▶ Videos", wiki:"🌐 Wiki",
+    panoHint:"Drag to look around", panoExit:"Back to tour ↩", panoSuffix:" Summit 360°",
+    rankTop:"👑 World's Highest", rank:n=>`World No.${n}`,
+    endTitle:"Flight complete — all 14", endText:"Everest 8,849m — the journey ends at the roof of the world", replay:"Fly again",
+    pauseTitle:"Pause/Play", skipTitle:"Next peak", fsTitle:"Fullscreen", fsExit:"Exit fullscreen",
+    unit:" m"
+  }
+};
+const peakName = p => lang === "ko" ? p.ko : p.en;
+const peakAlt  = p => lang === "ko" ? p.en : p.ko;   // 보조 표기(반대 언어)
+const peakRegion = p => lang === "ko" ? p.region : p.regionEn;
 
 const map = new maplibregl.Map({
   container: "map",
@@ -398,6 +442,12 @@ const markers = PEAKS.map(p => {
   return new maplibregl.Marker({ element: el, anchor: "bottom" })
     .setLngLat(p.coord).addTo(map);
 });
+function refreshMarkerNames(){
+  markers.forEach((m, i) => {
+    m.getElement().querySelector(".pk-label").innerHTML =
+      `${peakName(PEAKS[i])}<span>${PEAKS[i].elev.toLocaleString()}m</span>`;
+  });
+}
 
 // 공칭 좌표와 지형 데이터의 어긋남 보정: 원좌표 반경 600m 안에서 가장 높은
 // 지점을 찾아 핀을 옮긴다. 원형 탐색이라 이웃 봉우리로 건너뛰지 않고,
@@ -436,25 +486,25 @@ refreshMarkerLabels();
 // (투어 시작·봉 사이 줌아웃)만 나타나고, 봉우리에 다가가면 사라진다.
 const COUNTRIES = [
   // 봉우리가 위치한 핵심 국가
-  { name:"네팔",      coord:[84.0, 28.3] },
-  { name:"파키스탄",   coord:[71.5, 30.2] },
-  { name:"인도",      coord:[79.5, 25.0] },
-  { name:"중국 · 티베트", coord:[88.0, 32.0] },
-  { name:"부탄",      coord:[90.4, 27.5] },
-  { name:"방글라데시",  coord:[90.3, 24.0] },
+  { name:"네팔",      en:"Nepal",        coord:[84.0, 28.3] },
+  { name:"파키스탄",   en:"Pakistan",     coord:[71.5, 30.2] },
+  { name:"인도",      en:"India",        coord:[79.5, 25.0] },
+  { name:"중국 · 티베트", en:"China · Tibet", coord:[88.0, 32.0] },
+  { name:"부탄",      en:"Bhutan",       coord:[90.4, 27.5] },
+  { name:"방글라데시",  en:"Bangladesh",   coord:[90.3, 24.0] },
   // 줌아웃 시 보이는 중앙아시아
-  { name:"아프가니스탄", coord:[66.0, 33.8] },
-  { name:"타지키스탄",  coord:[71.3, 38.6] },
-  { name:"우즈베키스탄", coord:[63.5, 41.5] },
-  { name:"투르크메니스탄", coord:[59.0, 39.2] },
-  { name:"키르기스스탄", coord:[74.8, 41.4] },
-  { name:"카자흐스탄",  coord:[68.0, 48.0] },
+  { name:"아프가니스탄", en:"Afghanistan",  coord:[66.0, 33.8] },
+  { name:"타지키스탄",  en:"Tajikistan",   coord:[71.3, 38.6] },
+  { name:"우즈베키스탄", en:"Uzbekistan",   coord:[63.5, 41.5] },
+  { name:"투르크메니스탄", en:"Turkmenistan", coord:[59.0, 39.2] },
+  { name:"키르기스스탄", en:"Kyrgyzstan",   coord:[74.8, 41.4] },
+  { name:"카자흐스탄",  en:"Kazakhstan",   coord:[68.0, 48.0] },
   // 주요 중동 국가
-  { name:"이란",      coord:[54.0, 32.5] },
-  { name:"이라크",     coord:[43.7, 33.2] },
-  { name:"사우디아라비아", coord:[45.0, 24.0] },
-  { name:"아랍에미리트", coord:[54.3, 23.8] },
-  { name:"오만",      coord:[56.5, 21.5] },
+  { name:"이란",      en:"Iran",         coord:[54.0, 32.5] },
+  { name:"이라크",     en:"Iraq",         coord:[43.7, 33.2] },
+  { name:"사우디아라비아", en:"Saudi Arabia", coord:[45.0, 24.0] },
+  { name:"아랍에미리트", en:"UAE",          coord:[54.3, 23.8] },
+  { name:"오만",      en:"Oman",         coord:[56.5, 21.5] },
 ];
 const countryMarkers = COUNTRIES.map(c => {
   const el = document.createElement("div");
@@ -463,6 +513,9 @@ const countryMarkers = COUNTRIES.map(c => {
   return new maplibregl.Marker({ element: el, anchor: "center" })
     .setLngLat(c.coord).addTo(map);
 });
+function refreshCountryNames(){
+  countryMarkers.forEach((m, i) => { m.getElement().textContent = lang === "ko" ? COUNTRIES[i].name : COUNTRIES[i].en; });
+}
 function refreshCountryLabels(){
   const z = map.getZoom();
   const show = z < 7.2;                         // 줌아웃 상태에서만
@@ -490,8 +543,8 @@ function countUp(el, target, ms){
 // 영어판에 대표 사진이 없는 봉우리(예: 가셔브룸 II)가 있어, 없으면 다른
 // 언어판 위키로 순차 폴백한다 — 같은 커먼즈 사진을 대표 이미지로 쓰는 경우가 많다.
 const THUMB_LANGS = ["en", "de", "it", "fr", "es"];
-function fetchThumb(lang, title){
-  return fetch("https://" + lang + ".wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title))
+function fetchThumb(wlang, title){
+  return fetch("https://" + wlang + ".wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title))
     .then(r => r.ok ? r.json() : null)
     .then(j => (j && j.thumbnail && j.thumbnail.source) ? j.thumbnail.source : null)
     .catch(() => null);
@@ -502,11 +555,11 @@ function loadThumb(p){
   if (p._thumb){ img.src = p._thumb; img.style.display = "block"; return; }
   if (p._thumbFailed) return;
   (async () => {
-    for (const lang of THUMB_LANGS){
-      const src = await fetchThumb(lang, p.wiki);
+    for (const wlang of THUMB_LANGS){
+      const src = await fetchThumb(wlang, p.wiki);
       if (src){
         p._thumb = src;
-        if ($("cardKo").textContent === p.ko){ img.src = src; img.style.display = "block"; }
+        if (cardPeak === p){ img.src = src; img.style.display = "block"; }
         return;
       }
     }
@@ -514,13 +567,16 @@ function loadThumb(p){
   })();
 }
 
+let cardPeak = null;     // 현재 카드에 표시 중인 봉우리
 function showCard(p){
-  $("cardRank").textContent = p.rank === 1 ? "👑 세계 1위" : `세계 ${p.rank}위`;
+  cardPeak = p;
+  const t = T[lang];
+  $("cardRank").textContent = p.rank === 1 ? t.rankTop : t.rank(p.rank);
   $("cardRank").className = p.rank === 1 ? "top1" : "";
   $("cardRank").id = "cardRank";
-  $("cardKo").textContent = p.ko;
-  $("cardEn").textContent = p.en;
-  $("cardRegion").textContent = "📍 " + p.region;
+  $("cardKo").textContent = peakName(p);
+  $("cardEn").textContent = peakAlt(p);
+  $("cardRegion").textContent = "📍 " + peakRegion(p);
   const wikiUrl = "https://en.wikipedia.org/wiki/" + encodeURIComponent(p.wiki);
   $("cardImgLink").href = wikiUrl;
   $("wikiLink").href = wikiUrl;
@@ -653,7 +709,7 @@ function enterPano(){
   };
   map.setCenterClampedToGround(false);
   PANO_HANDLERS.forEach(h => map[h] && map[h].disable());
-  $("panoTitle").textContent = p.ko + " 정상 360°";
+  $("panoTitle").textContent = peakName(p) + T[lang].panoSuffix;
   $("panoBar").classList.add("show");
   (function look(){
     if (phase !== "pano") return;
@@ -772,7 +828,7 @@ function toggleFs(){
 function syncFsBtn(){
   const on = isFs();
   $("fsBtn").textContent = on ? "✕" : "⛶";
-  $("fsBtn").title = on ? "전체화면 종료" : "전체화면 보기";
+  $("fsBtn").title = on ? T[lang].fsExit : T[lang].fsTitle;
   setTimeout(() => map.resize(), 120);   // 화면 크기 변동 반영
 }
 if (fsSupported){
@@ -783,13 +839,50 @@ if (fsSupported){
   $("fsBtn").style.display = "none";     // 아이폰 사파리 등 미지원 기기
 }
 
+let mapReady = false;
 map.on("load", () => {
-  $("loadingNote").textContent = "준비 완료 · 약 3분간의 비행";
+  mapReady = true;
+  $("loadingNote").textContent = T[lang].ready;
   // 클램핑(중심점이 지형 표면을 따라감)은 기본값 그대로 켜둔다 — 이래야 봉우리에
   // 접근했을 때 카메라 중심이 정상 높이까지 올라가 봉우리를 위에서 내려다보며
   // 웅장하게 담을 수 있다. (클램핑을 끄면 중심이 해수면에 박혀 카메라가 봉우리
   // 아래로 내려가 줌인된 것처럼 보인다.)
 });
+
+// ── 언어 적용 ───────────────────────────────────────────────
+function applyLang(){
+  const t = T[lang];
+  document.documentElement.lang = lang;
+  $("introTitle").innerHTML = t.title;
+  $("introSub").innerHTML = t.subtitle;
+  $("startBtn").textContent = t.start;
+  $("loadingNote").textContent = mapReady ? t.ready : t.loading;
+  $("rotateText").innerHTML = t.rotate;
+  $("panoBtn").textContent = t.pano;
+  $("photoLink").textContent = t.photo;
+  $("videoLink").textContent = t.video;
+  $("wikiLink").textContent = t.wiki;
+  $("panoHint").textContent = t.panoHint;
+  $("panoExit").textContent = t.panoExit;
+  $("endTitle").textContent = t.endTitle;
+  $("endText").textContent = t.endText;
+  $("replayBtn").textContent = t.replay;
+  $("pauseBtn").title = t.pauseTitle;
+  $("skipBtn").title = t.skipTitle;
+  $("fsBtn").title = t.fsTitle;
+  // 언어 토글 버튼 활성 상태
+  $("langKo").classList.toggle("on", lang === "ko");
+  $("langEn").classList.toggle("on", lang === "en");
+  // 지도 위 동적 텍스트 갱신
+  refreshMarkerNames();
+  refreshCountryNames();
+  if (cardPeak && card.classList.contains("show")) showCard(cardPeak);
+  if (phase === "pano" && idx >= 0) $("panoTitle").textContent = peakName(PEAKS[idx]) + t.panoSuffix;
+}
+function setLang(l){ if (l === lang) return; lang = l; applyLang(); }
+$("langKo").addEventListener("click", () => setLang("ko"));
+$("langEn").addEventListener("click", () => setLang("en"));
+applyLang();
 </script>
 </body>
 </html>
