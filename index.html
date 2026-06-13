@@ -170,18 +170,22 @@
     #controls{right:16px;}
   }
 
-  /* ── 모바일 가로: 짧은 높이에 맞춘 컴팩트 레이아웃 ── */
-  @media (orientation:landscape) and (max-height:500px) {
-    #card { left:14px; right:auto; bottom:14px; min-width:0; max-width:46vw;
-      padding:11px 15px; border-radius:14px; }
-    #cardImg { max-height:78px; margin-bottom:8px; }
+  /* ── 모바일 가로: 사진을 텍스트 옆에 둔 가로 배치 ── */
+  @media (orientation:landscape) and (max-height:600px) {
+    /* 사진(왼쪽) + 정보(오른쪽)를 나란히 → 카드 높이를 절반으로 */
+    #card { left:12px; right:auto; bottom:12px; min-width:0; max-width:60vw;
+      padding:12px; border-radius:14px; display:flex; gap:13px; align-items:stretch; }
+    #cardImgLink { flex:0 0 auto; display:flex; }
+    #cardImg { width:118px; height:100%; max-height:none; min-height:118px;
+      object-fit:cover; border-radius:9px; margin-bottom:0; align-self:stretch; }
+    #cardBody { min-width:0; }
     #cardRank { font-size:10px; margin-bottom:5px; padding:3px 9px; }
-    #cardKo { font-size:21px; }
-    #cardEn { font-size:11.5px; margin:1px 0 7px; }
-    #cardElev { font-size:26px; }
+    #cardKo { font-size:20px; }
+    #cardEn { font-size:11.5px; margin:1px 0 6px; }
+    #cardElev { font-size:25px; }
     #cardElev small { font-size:14px; }
-    #cardRegion { font-size:11px; margin-top:6px; }
-    #cardActions { margin-top:10px; gap:6px; }
+    #cardRegion { font-size:11px; margin-top:5px; }
+    #cardActions { margin-top:9px; gap:6px; }
     #cardActions button, #cardActions a { padding:5px 10px; font-size:11px; }
     #progress { bottom:12px; padding:6px 11px; gap:5px; }
     .dot { width:7px; height:7px; }
@@ -216,16 +220,18 @@
 
 <div id="card">
   <a id="cardImgLink" target="_blank" rel="noopener"><img id="cardImg" alt=""></a>
-  <span id="cardRank"></span>
-  <h2 id="cardKo"></h2>
-  <div id="cardEn"></div>
-  <div id="cardElev"></div>
-  <div id="cardRegion"></div>
-  <div id="cardActions">
-    <button id="panoBtn">⛰ 정상 360°</button>
-    <a id="photoLink" target="_blank" rel="noopener">📷 사진</a>
-    <a id="videoLink" target="_blank" rel="noopener">▶ 영상</a>
-    <a id="wikiLink" target="_blank" rel="noopener">🌐 위키</a>
+  <div id="cardBody">
+    <span id="cardRank"></span>
+    <h2 id="cardKo"></h2>
+    <div id="cardEn"></div>
+    <div id="cardElev"></div>
+    <div id="cardRegion"></div>
+    <div id="cardActions">
+      <button id="panoBtn">⛰ 정상 360°</button>
+      <a id="photoLink" target="_blank" rel="noopener">📷 사진</a>
+      <a id="videoLink" target="_blank" rel="noopener">▶ 영상</a>
+      <a id="wikiLink" target="_blank" rel="noopener">🌐 위키</a>
+    </div>
   </div>
 </div>
 
