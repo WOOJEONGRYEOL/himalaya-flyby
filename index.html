@@ -513,12 +513,19 @@ function approach(p, fromFar){
   });
 }
 
+// 선회 시작(=360° 버튼 생성) 시점의 카메라 상태. 파노라마에서 복귀할 때
+// 정확히 이 고도·관점으로 되돌아간다.
+let panoReturnView = null;
+
 // 선회: 봉우리 둘레를 천천히 돈다 (드론 오빗 샷)
 function orbit(p){
   phase = "orbit";
   showCard(p);
   const start = performance.now();
   const startBearing = map.getBearing();
+  // 360° 버튼이 막 생성된 이 순간의 카메라를 스냅샷
+  panoReturnView = { center: [p.coord[0], p.coord[1]],
+    zoom: map.getZoom(), pitch: map.getPitch(), bearing: startBearing };
   const DURATION = 13000, SWEEP = 110;         // 13초간 110도, 줌은 고정
   let midRefined = false;
   (function spin(now){
@@ -563,8 +570,7 @@ function enterPano(){
   pano = {
     lng: m.lng, lat: m.lat,
     alt: (ground != null ? ground : p.elev * 1.35) + 60,    // 정상 바로 위
-    bearing: map.getBearing(), pitch: 81, auto: true, raf: null,
-    retBearing: map.getBearing()                            // 복귀 시 이 선회 방향으로 (360 버튼 누른 시점)
+    bearing: map.getBearing(), pitch: 81, auto: true, raf: null
   };
   map.setCenterClampedToGround(false);
   PANO_HANDLERS.forEach(h => map[h] && map[h].disable());
@@ -581,7 +587,8 @@ function enterPano(){
 function exitPano(resume){
   if (phase !== "pano") return;
   cancelAnimationFrame(pano.raf);
-  const retBearing = pano.retBearing;            // 360 버튼 누른 시점의 선회 방향
+  // 360° 버튼이 생성됐던 순간(선회 시작)의 카메라 상태로 복귀
+  const view = panoReturnView || { center: PEAKS[idx].coord, zoom: 11.6, pitch: 67, bearing: map.getBearing() };
   // 파노라마 해제: 중심 고도를 해수면(0)으로 되돌린다.
   // ⚠ setCenterClampedToGround(true) 는 호출하지 않는다 — 이걸 부르면 중심점이
   //   과장된 지형 높이(예: K2 ≈ 11,449m)로 스냅되어 카메라가 멀어지고, 그 뒤
@@ -593,12 +600,11 @@ function exitPano(resume){
   pano = null; phase = "idle";
   if (resume !== false){
     paused = false; $("pauseBtn").textContent = "⏸";
-    // 떠났던 그 선회 시점(같은 방향·거리)으로 매끄럽게 복귀
+    // 360° 버튼이 막 떴던 그 고도·관점(줌·피치·방향)으로 정확히 복귀
     phase = "approach";
     const p = PEAKS[idx], myIdx = idx;
     map.flyTo({
-      center: p.coord, zoom: 11.6, pitch: 67,
-      bearing: retBearing,
+      center: view.center, zoom: view.zoom, pitch: view.pitch, bearing: view.bearing,
       speed: 0.9, curve: 1.2, essential: true
     });
     map.once("moveend", () => {
