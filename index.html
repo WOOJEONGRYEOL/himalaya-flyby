@@ -157,9 +157,14 @@
   .pk.active .pk-dot { transform:scale(1.35); }
 
   /* ── 국가 라벨 (줌아웃 시에만 표시) ──────────── */
+  /* 밝은 하늘·지평선 위에서도 보이도록 흰 글자에 선명한 어두운 외곽선을 두른다 */
   .ctry { pointer-events:none; text-align:center;
-    font-size:15px; font-weight:700; letter-spacing:.22em; color:rgba(232,242,255,.92);
-    text-shadow:0 1px 12px rgba(0,0,0,.9), 0 0 4px rgba(0,0,0,.7);
+    font-size:15px; font-weight:800; letter-spacing:.2em; color:#fff;
+    text-shadow:
+      0 0 3px rgba(0,0,0,.98),
+      1px 1px 0 rgba(0,0,0,.9), -1px 1px 0 rgba(0,0,0,.9),
+      1px -1px 0 rgba(0,0,0,.9), -1px -1px 0 rgba(0,0,0,.9),
+      0 2px 14px rgba(0,0,0,.75);
     opacity:0; transition:opacity .8s; white-space:nowrap; }
   .ctry.show { opacity:1; }
 
