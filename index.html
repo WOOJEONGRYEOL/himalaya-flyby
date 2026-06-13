@@ -539,7 +539,8 @@ function enterPano(){
   pano = {
     lng: m.lng, lat: m.lat,
     alt: (ground != null ? ground : p.elev * 1.35) + 60,    // 정상 바로 위
-    bearing: map.getBearing(), pitch: 81, auto: true, raf: null
+    bearing: map.getBearing(), pitch: 81, auto: true, raf: null,
+    retBearing: map.getBearing()                            // 복귀 시 이 선회 방향으로 (360 버튼 누른 시점)
   };
   map.setCenterClampedToGround(false);
   PANO_HANDLERS.forEach(h => map[h] && map[h].disable());
@@ -556,20 +557,25 @@ function enterPano(){
 function exitPano(resume){
   if (phase !== "pano") return;
   cancelAnimationFrame(pano.raf);
-  map.setCenterClampedToGround(true);
+  const retBearing = pano.retBearing;            // 360 버튼 누른 시점의 선회 방향
+  // 파노라마 해제: 중심 고도를 해수면(0)으로 되돌린다.
+  // ⚠ setCenterClampedToGround(true) 는 호출하지 않는다 — 이걸 부르면 중심점이
+  //   과장된 지형 높이(예: K2 ≈ 11,449m)로 스냅되어 카메라가 멀어지고, 그 뒤
+  //   모든 선회가 정상이 안 보이게 줌인되는 버그가 생긴다. enterPano에서 이미
+  //   clamped=false 이므로 아래 setCenterElevation(0) 만으로 정상 프레이밍 복원.
   map.setCenterElevation(0);
   PANO_HANDLERS.forEach(h => map[h] && map[h].enable());
   $("panoBar").classList.remove("show");
   pano = null; phase = "idle";
   if (resume !== false){
     paused = false; $("pauseBtn").textContent = "⏸";
-    // 복귀는 빠르게: 평소의 느린 접근 비행 대신 몇 초 안에 선회 거리로 줌아웃
+    // 떠났던 그 선회 시점(같은 방향·거리)으로 매끄럽게 복귀
     phase = "approach";
     const p = PEAKS[idx], myIdx = idx;
     map.flyTo({
       center: p.coord, zoom: 11.6, pitch: 67,
-      bearing: map.getBearing() + 25,
-      speed: 1.2, curve: 1.35, essential: true
+      bearing: retBearing,
+      speed: 1.4, curve: 1.3, essential: true
     });
     map.once("moveend", () => {
       whenTilesReady(() => {
