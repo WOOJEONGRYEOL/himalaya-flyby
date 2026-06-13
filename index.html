@@ -520,6 +520,9 @@ let panoReturnView = null;
 // 선회: 봉우리 둘레를 천천히 돈다 (드론 오빗 샷)
 function orbit(p){
   phase = "orbit";
+  // 매 선회 시작마다 중심 고도를 0으로 재확인 (파노라마 등으로 어긋났을 때 자가복구)
+  map.setCenterClampedToGround(false);
+  map.setCenterElevation(0);
   showCard(p);
   const start = performance.now();
   const startBearing = map.getBearing();
@@ -706,7 +709,15 @@ if (fsSupported){
   $("fsBtn").style.display = "none";     // 아이폰 사파리 등 미지원 기기
 }
 
-map.on("load", () => { $("loadingNote").textContent = "준비 완료 · 약 3분간의 비행"; });
+map.on("load", () => {
+  $("loadingNote").textContent = "준비 완료 · 약 3분간의 비행";
+  // 앱 전체에서 중심점을 해수면(고도 0)에 고정 — 클램핑을 켜두면 지형이 로드되는
+  // 순간 중심이 과장된 산 높이(예: K2 ≈ 11,449m)로 끌려 올라가 카메라가 멀어지고
+  // 선회가 줌인되어 보인다. 클램핑을 끄고 고도 0을 유지하면 어느 봉우리든,
+  // 파노라마 진입/종료 후에도 항상 동일하고 올바른 선회 프레이밍이 보장된다.
+  map.setCenterClampedToGround(false);
+  map.setCenterElevation(0);
+});
 </script>
 </body>
 </html>
