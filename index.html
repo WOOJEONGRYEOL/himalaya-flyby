@@ -434,21 +434,32 @@ function countUp(el, target, ms){
   })(t0);
 }
 
-// 위키피디아 대표 사진을 카드에 보여준다 (실패해도 조용히 무시)
+// 위키피디아 대표 사진을 카드에 보여준다 (실패해도 조용히 무시).
+// 영어판에 대표 사진이 없는 봉우리(예: 가셔브룸 II)가 있어, 없으면 다른
+// 언어판 위키로 순차 폴백한다 — 같은 커먼즈 사진을 대표 이미지로 쓰는 경우가 많다.
+const THUMB_LANGS = ["en", "de", "it", "fr", "es"];
+function fetchThumb(lang, title){
+  return fetch("https://" + lang + ".wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(title))
+    .then(r => r.ok ? r.json() : null)
+    .then(j => (j && j.thumbnail && j.thumbnail.source) ? j.thumbnail.source : null)
+    .catch(() => null);
+}
 function loadThumb(p){
   const img = $("cardImg");
   img.style.display = "none";
   if (p._thumb){ img.src = p._thumb; img.style.display = "block"; return; }
   if (p._thumbFailed) return;
-  fetch("https://en.wikipedia.org/api/rest_v1/page/summary/" + encodeURIComponent(p.wiki))
-    .then(r => r.json())
-    .then(j => {
-      const src = j.thumbnail && j.thumbnail.source ? j.thumbnail.source : null;
-      if (!src){ p._thumbFailed = true; return; }
-      p._thumb = src;
-      if ($("cardKo").textContent === p.ko){ img.src = src; img.style.display = "block"; }
-    })
-    .catch(() => { p._thumbFailed = true; });
+  (async () => {
+    for (const lang of THUMB_LANGS){
+      const src = await fetchThumb(lang, p.wiki);
+      if (src){
+        p._thumb = src;
+        if ($("cardKo").textContent === p.ko){ img.src = src; img.style.display = "block"; }
+        return;
+      }
+    }
+    p._thumbFailed = true;
+  })();
 }
 
 function showCard(p){
