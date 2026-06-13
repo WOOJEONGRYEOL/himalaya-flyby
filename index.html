@@ -520,9 +520,9 @@ let panoReturnView = null;
 // 선회: 봉우리 둘레를 천천히 돈다 (드론 오빗 샷)
 function orbit(p){
   phase = "orbit";
-  // 매 선회 시작마다 중심 고도를 0으로 재확인 (파노라마 등으로 어긋났을 때 자가복구)
-  map.setCenterClampedToGround(false);
-  map.setCenterElevation(0);
+  // 선회는 클램핑이 켜진 상태에서 진행 — 중심이 정상 높이를 따라가 카메라가
+  // 봉우리를 위에서 내려다본다. (파노라마에서 돌아올 때 exitPano가 다시 켜준다)
+  map.setCenterClampedToGround(true);
   showCard(p);
   const start = performance.now();
   const startBearing = map.getBearing();
@@ -592,12 +592,10 @@ function exitPano(resume){
   cancelAnimationFrame(pano.raf);
   // 360° 버튼이 생성됐던 순간(선회 시작)의 카메라 상태로 복귀
   const view = panoReturnView || { center: PEAKS[idx].coord, zoom: 11.6, pitch: 67, bearing: map.getBearing() };
-  // 파노라마 해제: 중심 고도를 해수면(0)으로 되돌린다.
-  // ⚠ setCenterClampedToGround(true) 는 호출하지 않는다 — 이걸 부르면 중심점이
-  //   과장된 지형 높이(예: K2 ≈ 11,449m)로 스냅되어 카메라가 멀어지고, 그 뒤
-  //   모든 선회가 정상이 안 보이게 줌인되는 버그가 생긴다. enterPano에서 이미
-  //   clamped=false 이므로 아래 setCenterElevation(0) 만으로 정상 프레이밍 복원.
-  map.setCenterElevation(0);
+  // 파노라마 해제: 클램핑을 다시 켜서 중심점이 정상 높이를 따라가게 한다.
+  // (파노라마에서는 clamped=false + 높은 고도로 정상에 카메라를 세웠으므로,
+  //  여기서 클램핑을 복원해야 카메라가 다시 봉우리 위로 올라가 줌인이 풀린다.)
+  map.setCenterClampedToGround(true);
   PANO_HANDLERS.forEach(h => map[h] && map[h].enable());
   $("panoBar").classList.remove("show");
   pano = null; phase = "idle";
@@ -711,12 +709,10 @@ if (fsSupported){
 
 map.on("load", () => {
   $("loadingNote").textContent = "준비 완료 · 약 3분간의 비행";
-  // 앱 전체에서 중심점을 해수면(고도 0)에 고정 — 클램핑을 켜두면 지형이 로드되는
-  // 순간 중심이 과장된 산 높이(예: K2 ≈ 11,449m)로 끌려 올라가 카메라가 멀어지고
-  // 선회가 줌인되어 보인다. 클램핑을 끄고 고도 0을 유지하면 어느 봉우리든,
-  // 파노라마 진입/종료 후에도 항상 동일하고 올바른 선회 프레이밍이 보장된다.
-  map.setCenterClampedToGround(false);
-  map.setCenterElevation(0);
+  // 클램핑(중심점이 지형 표면을 따라감)은 기본값 그대로 켜둔다 — 이래야 봉우리에
+  // 접근했을 때 카메라 중심이 정상 높이까지 올라가 봉우리를 위에서 내려다보며
+  // 웅장하게 담을 수 있다. (클램핑을 끄면 중심이 해수면에 박혀 카메라가 봉우리
+  // 아래로 내려가 줌인된 것처럼 보인다.)
 });
 </script>
 </body>
