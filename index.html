@@ -122,6 +122,8 @@
     font-size:17px; cursor:pointer; transition:background .2s;
   }
   #controls button:hover { background:rgba(40,80,130,.7); }
+  #controls button.on { background:linear-gradient(135deg,#ffd97a,#ffb347); color:#13212e;
+    border-color:rgba(255,230,160,.85); box-shadow:0 0 16px rgba(255,200,80,.5); }
 
   /* ── 전체화면 버튼 (항상 우상단) ──────────────── */
   #fsBtn {
@@ -311,6 +313,7 @@
 <div id="progress"></div>
 
 <div id="controls">
+  <button id="loopBtn" title="무한 반복">🔁</button>
   <button id="pauseBtn" title="일시정지/재생">⏸</button>
   <button id="skipBtn" title="다음 봉우리">⏭</button>
 </div>
@@ -892,6 +895,8 @@ function applyLang(){
   $("langEn").classList.toggle("on", lang === "en");
   $("loopLabel").textContent = t.loop;
   $("loopToggle").classList.toggle("on", loopMode);
+  $("loopBtn").title = t.loop;
+  $("loopBtn").classList.toggle("on", loopMode);
   // 지도 위 동적 텍스트 갱신
   refreshMarkerNames();
   refreshCountryNames();
@@ -901,10 +906,13 @@ function applyLang(){
 function setLang(l){ if (l === lang) return; lang = l; applyLang(); }
 $("langKo").addEventListener("click", () => setLang("ko"));
 $("langEn").addEventListener("click", () => setLang("en"));
-$("loopToggle").addEventListener("click", () => {
-  loopMode = !loopMode;
-  $("loopToggle").classList.toggle("on", loopMode);
-});
+function setLoop(on){
+  loopMode = on;
+  $("loopToggle").classList.toggle("on", on);
+  $("loopBtn").classList.toggle("on", on);
+}
+$("loopToggle").addEventListener("click", () => setLoop(!loopMode));
+$("loopBtn").addEventListener("click", () => setLoop(!loopMode));
 applyLang();
 </script>
 </body>
