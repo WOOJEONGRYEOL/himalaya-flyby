@@ -328,10 +328,10 @@
 // ── 14좌 데이터: 낮은 봉우리 → 높은 봉우리 ──────────────────────────
 const PEAKS = [
   { rank:14, ko:"시샤팡마",   en:"Shishapangma",  elev:8027, coord:[85.7792,28.3525], region:"티베트 (중국)",            regionEn:"Tibet (China)",            wiki:"Shishapangma" },
-  { rank:13, ko:"가셔브룸 II", en:"Gasherbrum II", elev:8035, coord:[76.6533,35.7583], region:"카라코람 · 파키스탄/중국", regionEn:"Karakoram · Pakistan/China", wiki:"Gasherbrum II" },
+  { rank:13, ko:"가셔브룸 II", en:"Gasherbrum II", elev:8035, coord:[76.6533,35.7583], region:"카라코람 · 파키스탄/중국", regionEn:"Karakoram · Pakistan/China", wiki:"Gasherbrum II", approachBoost:1.7, approachBearing:67 },
   { rank:12, ko:"브로드피크",  en:"Broad Peak",    elev:8051, coord:[76.5683,35.8108], region:"카라코람 · 파키스탄/중국", regionEn:"Karakoram · Pakistan/China", wiki:"Broad Peak" },
   { rank:11, ko:"가셔브룸 I",  en:"Gasherbrum I",  elev:8080, coord:[76.6964,35.7244], region:"카라코람 · 파키스탄/중국", regionEn:"Karakoram · Pakistan/China", wiki:"Gasherbrum I" },
-  { rank:10, ko:"안나푸르나",  en:"Annapurna I",   elev:8091, coord:[83.8203,28.5961], region:"네팔",                    regionEn:"Nepal",                    wiki:"Annapurna" },
+  { rank:10, ko:"안나푸르나",  en:"Annapurna I",   elev:8091, coord:[83.8203,28.5961], region:"네팔",                    regionEn:"Nepal",                    wiki:"Annapurna", approachBoost:1.7 },
   { rank:9,  ko:"낭가파르바트", en:"Nanga Parbat",  elev:8126, coord:[74.5892,35.2372], region:"파키스탄",                regionEn:"Pakistan",                 wiki:"Nanga Parbat" },
   { rank:8,  ko:"마나슬루",   en:"Manaslu",       elev:8163, coord:[84.5597,28.5497], region:"네팔",                    regionEn:"Nepal",                    wiki:"Manaslu" },
   { rank:7,  ko:"다울라기리",  en:"Dhaulagiri I",  elev:8167, coord:[83.4875,28.6967], region:"네팔",                    regionEn:"Nepal",                    wiki:"Dhaulagiri" },
@@ -631,18 +631,19 @@ function distKm(a, b){
 function approach(p, fromFar){
   phase = "approach";
   const myIdx = idx;
-  const bearing = (idx * 67) % 360 - 180;      // 봉우리마다 다른 방향에서 접근
+  const bearing = p.approachBearing !== undefined ? p.approachBearing : (idx * 67) % 360 - 180;
   markers.forEach((m, i) => m.getElement().classList.toggle("active", i === idx));
   // 이동 거리에 따라 속도·아치를 조절: 멀수록 더 느리게(타일이 따라올 시간 확보)
   // + 아치를 조금 높여 줌아웃 정점에서 저해상도 타일을 쓰게 해 검은 번쩍임 감소
   const from = map.getCenter();
   const t = Math.min(1, distKm([from.lng, from.lat], p.coord) / 550);  // 0(가까움)~1(550km+)
+  const baseSpeed = 0.125 - 0.075 * t;
   map.flyTo({
     center: p.coord,
     zoom: 11.6,
     pitch: 67,
     bearing,
-    speed: 0.125 - 0.075 * t,                  // 가까우면 0.125, 멀면 0.05 (먼 줌아웃을 더 천천히)
+    speed: baseSpeed * (p.approachBoost || 1),  // 봉우리별 속도 배율 적용
     curve: 1.25 + 0.45 * t,                    // 가까우면 1.25, 멀면 1.70 (높이 아치)
     essential: true
   });
